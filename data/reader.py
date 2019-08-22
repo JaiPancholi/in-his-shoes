@@ -10,8 +10,6 @@ def read_alice():
     
     text = text.replace('\n', ' ')
     
-    print(text[:10])
-    
     START_TEXT = '*** START OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
     END_TEXT = '*** END OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
 
