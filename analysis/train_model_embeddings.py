@@ -101,7 +101,7 @@ def create_train_valid(features,
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Masking, Embedding
 
-def build_model(embedding_matrix):
+def build_model(embedding_matrix, training_length):
     model = Sequential()
 
     # Embedding layer
@@ -133,6 +133,8 @@ def build_model(embedding_matrix):
     model.compile(
         optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
+    return model
+
 def load_embeddings(glove_vectors, word_idx):
     # Load in embeddings
     # glove_vectors = '/home/ubuntu/.keras/datasets/glove.6B.100d.txt'
@@ -162,10 +164,10 @@ def load_embeddings(glove_vectors, word_idx):
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
-def train_model():
+def train_model(model, X_train, X_valid, y_train, y_valid):
     # Create callbacks
     callbacks = [EarlyStopping(monitor='val_loss', patience=5),
-                ModelCheckpoint('../models/model.h5', save_best_only=True, 
+                ModelCheckpoint('./model/model.h5', save_best_only=True, 
                                 save_weights_only=False)]
     
     history = model.fit(X_train,  y_train, 
@@ -199,5 +201,8 @@ if __name__ == '__main__':
                                                 train_fraction=0.7)
 
 
-    embedding_matrix = load_embeddings()
-    # model = build_model()
+    embedding_matrix = load_embeddings('./data/glove.6B/glove.6B.100d.txt', word_idx)
+    
+    model = build_model(embedding_matrix, TRAINING_LENGTH)
+
+    train_model(model, X_train, X_valid, y_train, y_valid)
