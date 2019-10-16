@@ -99,7 +99,7 @@ def create_train_valid(features,
 
 
 from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout, Masking, Embedding
+from keras.layers import LSTM, Dense, Dropout, Masking, Embedding, Bidirectional
 
 def build_model(embedding_matrix, training_length):
     model = Sequential()
@@ -117,14 +117,17 @@ def build_model(embedding_matrix, training_length):
     model.add(Masking(mask_value=0.0))
 
     # Recurrent layer
-    model.add(LSTM(64, return_sequences=False, 
-                dropout=0.1, recurrent_dropout=0.1))
+    # model.add(LSTM(64, return_sequences=False, 
+    #             dropout=0.1, recurrent_dropout=0.1))
+
+    model.add(Bidirectional(LSTM(64, return_sequences=False, 
+                dropout=0.1, recurrent_dropout=0.1)))
 
     # Fully connected layer
     model.add(Dense(64, activation='relu'))
 
-    # Dropout for regularization
-    model.add(Dropout(0.5))
+    ## Dropout for regularization
+    # model.add(Dropout(0.5))
 
     # Output layer
     model.add(Dense(num_words, activation='softmax'))
@@ -164,13 +167,13 @@ def load_embeddings(glove_vectors, word_idx):
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
-def train_model(model, X_train, X_valid, y_train, y_valid):
+def train_model(model, X_train, X_valid, y_train, y_valid, filepath):
     # Create callbacks
     callbacks = [EarlyStopping(monitor='val_loss', patience=5),
-                ModelCheckpoint('./model/model.h5', save_best_only=True, 
+                ModelCheckpoint(filepath, save_best_only=True, 
                                 save_weights_only=False)]
     
-    history = model.fit(X_train,  y_train, 
+    history = model.fit(X_train, y_train, 
         batch_size=2048, epochs=150,
         callbacks=callbacks,
         validation_data=(X_valid, y_valid))
@@ -201,8 +204,10 @@ if __name__ == '__main__':
                                                 train_fraction=0.7)
 
 
-    embedding_matrix = load_embeddings('./data/glove.6B/glove.6B.100d.txt', word_idx)
+    # embedding_matrix = load_embeddings('./data/glove.6B/glove.6B.100d.txt', word_idx)
+    embedding_matrix = load_embeddings('./data/glove.6B.100d.txt', word_idx)
+    # embedding_matrix = load_embeddings('./data/glove.6B.300d.txt', word_idx)
     
     model = build_model(embedding_matrix, TRAINING_LENGTH)
 
-    train_model(model, X_train, X_valid, y_train, y_valid)
+    train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v2_alice.h5')
