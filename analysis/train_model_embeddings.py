@@ -50,6 +50,7 @@ def make_sequences(texts, training_length = 50,
             labels.append(extract[-1])
     
     print(f'There are {len(features)} sequences.')
+    # print(len(features[0]))
     
     # Return everything needed for setting up the model
     return word_idx, idx_word, num_words, word_counts, new_texts, new_sequences, features, labels
@@ -84,6 +85,7 @@ def create_train_valid(features,
 
     # One hot encoding of labels
     for example_index, word_index in enumerate(train_labels):
+        # print(example_index, word_index)
         y_train[example_index, word_index] = 1
 
     for example_index, word_index in enumerate(valid_labels):
@@ -127,7 +129,17 @@ def build_model(embedding_matrix, training_length):
     model.add(Dense(64, activation='relu'))
 
     ## Dropout for regularization
-    # model.add(Dropout(0.5))
+    model.add(Dropout(0.25))
+
+    # Recurrent layer    
+    model.add(Bidirectional(LSTM(64, return_sequences=False, 
+                dropout=0.1, recurrent_dropout=0.1)))
+
+    # Fully connected layer
+    model.add(Dense(64, activation='relu'))
+
+    ## Dropout for regularization
+    model.add(Dropout(0.5))
 
     # Output layer
     model.add(Dense(num_words, activation='softmax'))
@@ -204,10 +216,10 @@ if __name__ == '__main__':
                                                 train_fraction=0.7)
 
 
-    # embedding_matrix = load_embeddings('./data/glove.6B/glove.6B.100d.txt', word_idx)
-    embedding_matrix = load_embeddings('./data/glove.6B.100d.txt', word_idx)
-    # embedding_matrix = load_embeddings('./data/glove.6B.300d.txt', word_idx)
+    embedding_matrix = load_embeddings('~/data/glove.6B/glove.6B.100d.txt', word_idx)
+    # embedding_matrix = load_embeddings('~/data/glove.6B.100d.txt', word_idx)
+    # # embedding_matrix = load_embeddings('~/data/glove.6B.300d.txt', word_idx)
     
     model = build_model(embedding_matrix, TRAINING_LENGTH)
 
-    train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v2_alice.h5')
+    # train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v2_alice.h5')
