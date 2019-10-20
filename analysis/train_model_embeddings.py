@@ -110,7 +110,7 @@ def build_model(embedding_matrix, training_length):
     model.add(
         Embedding(input_dim=num_words,
                 input_length = training_length,
-                output_dim=100,
+                output_dim=300,
                 weights=[embedding_matrix],
                 trainable=False,
                 mask_zero=True))
@@ -128,18 +128,18 @@ def build_model(embedding_matrix, training_length):
     # Fully connected layer
     model.add(Dense(64, activation='relu'))
 
-    ## Dropout for regularization
-    model.add(Dropout(0.25))
+    # ## Dropout for regularization
+    # model.add(Dropout(0.25))
 
     # Recurrent layer    
-    model.add(Bidirectional(LSTM(64, return_sequences=False, 
-                dropout=0.1, recurrent_dropout=0.1)))
+    # model.add(Bidirectional(LSTM(64, return_sequences=False, 
+    #             dropout=0.1, recurrent_dropout=0.1)))
 
-    # Fully connected layer
-    model.add(Dense(64, activation='relu'))
+    # # Fully connected layer
+    # model.add(Dense(64, activation='relu'))
 
     ## Dropout for regularization
-    model.add(Dropout(0.5))
+    # model.add(Dropout(0.25))
 
     # Output layer
     model.add(Dense(num_words, activation='softmax'))
@@ -208,7 +208,6 @@ if __name__ == '__main__':
     # print(features)
     # print(labels)
 
-
     X_train, X_valid, y_train, y_valid = create_train_valid(features,
                                                 labels,
                                                 num_words,
@@ -216,10 +215,10 @@ if __name__ == '__main__':
                                                 train_fraction=0.7)
 
 
-    embedding_matrix = load_embeddings('~/data/glove.6B/glove.6B.100d.txt', word_idx)
     # embedding_matrix = load_embeddings('~/data/glove.6B.100d.txt', word_idx)
     # # embedding_matrix = load_embeddings('~/data/glove.6B.300d.txt', word_idx)
-    
+    # embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.100d.txt', word_idx)
+    embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.300d.txt', word_idx)
     model = build_model(embedding_matrix, TRAINING_LENGTH)
 
-    # train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v2_alice.h5')
+    train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v3_alice.h5')

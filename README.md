@@ -6,8 +6,8 @@ https://towardsdatascience.com/recurrent-neural-networks-by-example-in-python-ff
 # Download Globe
 ```
 wget http://nlp.stanford.edu/data/glove.6B.zip -P ~/data/
-unzip ~data/glove.6B.zip -d ~data/
-rm ~data/glove.6B.zip
+unzip ~/data/glove.6B.zip -d ~/data/
+rm ~/data/glove.6B.zip
 ```
 
 ## Generate Samples
