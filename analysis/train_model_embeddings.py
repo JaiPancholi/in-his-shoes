@@ -1,7 +1,7 @@
 from keras.preprocessing.text import Tokenizer
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data.reader import read_alice
+from data.reader import read_alice, read_bbc_tech
 
 def make_sequences(texts, training_length = 50,
                    lower = True, filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n'):
@@ -21,7 +21,7 @@ def make_sequences(texts, training_length = 50,
     
     # Convert text to sequences of integers
     sequences = tokenizer.texts_to_sequences(texts)
-    
+
     # Limit to sequences with more than training length tokens
     seq_lengths = [len(x) for x in sequences]
     over_idx = [i for i, l in enumerate(seq_lengths) if l > (training_length + 20)]
@@ -39,7 +39,7 @@ def make_sequences(texts, training_length = 50,
     
     # Iterate through the sequences of tokens
     for seq in new_sequences:
-        
+
         # Create multiple training examples from each sequence
         for i in range(training_length, len(seq)):
             # Extract the features and label
@@ -85,7 +85,6 @@ def create_train_valid(features,
 
     # One hot encoding of labels
     for example_index, word_index in enumerate(train_labels):
-        # print(example_index, word_index)
         y_train[example_index, word_index] = 1
 
     for example_index, word_index in enumerate(valid_labels):
@@ -103,14 +102,14 @@ def create_train_valid(features,
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Masking, Embedding, Bidirectional
 
-def build_model(embedding_matrix, training_length):
+def build_model_v1(embedding_matrix, training_length):
     model = Sequential()
 
     # Embedding layer
     model.add(
         Embedding(input_dim=num_words,
                 input_length = training_length,
-                output_dim=300,
+                output_dim=100,
                 weights=[embedding_matrix],
                 trainable=False,
                 mask_zero=True))
@@ -119,8 +118,76 @@ def build_model(embedding_matrix, training_length):
     model.add(Masking(mask_value=0.0))
 
     # Recurrent layer
-    # model.add(LSTM(64, return_sequences=False, 
-    #             dropout=0.1, recurrent_dropout=0.1))
+    model.add(LSTM(64, return_sequences=False, 
+                dropout=0.1, recurrent_dropout=0.1))
+
+    # Fully connected layer
+    model.add(Dense(64, activation='relu'))
+
+    # Dropout for regularization
+    model.add(Dropout(0.5))
+
+    # Output layer
+    model.add(Dense(num_words, activation='softmax'))
+
+    # Compile the model
+    model.compile(
+        optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+def build_model_v2(embedding_matrix, training_length):
+    model = Sequential()
+
+    # Embedding layer
+    model.add(
+        Embedding(input_dim=num_words,
+                input_length = training_length,
+                output_dim=100,
+                weights=[embedding_matrix],
+                trainable=True,
+                mask_zero=True))
+
+    ## Masking layer for pre-trained embeddings
+    # model.add(Masking(mask_value=0.0))
+
+    # Recurrent layer
+    model.add(LSTM(64, return_sequences=False, 
+                dropout=0.1, recurrent_dropout=0.1))
+
+    # Fully connected layer
+    model.add(Dense(64, activation='relu'))
+
+    # Dropout for regularization
+    model.add(Dropout(0.5))
+
+    # Output layer
+    model.add(Dense(num_words, activation='softmax'))
+
+    # Compile the model
+    model.compile(
+        optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    return model
+
+def build_model_v3(embedding_matrix, training_length):
+    model = Sequential()
+
+    # Embedding layer
+    model.add(
+        Embedding(input_dim=num_words,
+                input_length = training_length,
+                output_dim=100,
+                weights=[embedding_matrix],
+                trainable=False,
+                mask_zero=True))
+
+    ## Masking layer for pre-trained embeddings
+    model.add(Masking(mask_value=0.0))
+
+    # Recurrent layer
+    model.add(LSTM(64, return_sequences=True, 
+                dropout=0.1, recurrent_dropout=0.1))
 
     model.add(Bidirectional(LSTM(64, return_sequences=False, 
                 dropout=0.1, recurrent_dropout=0.1)))
@@ -128,18 +195,45 @@ def build_model(embedding_matrix, training_length):
     # Fully connected layer
     model.add(Dense(64, activation='relu'))
 
-    # ## Dropout for regularization
-    # model.add(Dropout(0.25))
+    # Dropout for regularization
+    model.add(Dropout(0.5))
 
-    # Recurrent layer    
-    # model.add(Bidirectional(LSTM(64, return_sequences=False, 
-    #             dropout=0.1, recurrent_dropout=0.1)))
+    # Output layer
+    model.add(Dense(num_words, activation='softmax'))
 
-    # # Fully connected layer
-    # model.add(Dense(64, activation='relu'))
+    # Compile the model
+    model.compile(
+        optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    ## Dropout for regularization
-    # model.add(Dropout(0.25))
+    return model
+
+def build_model_v4(embedding_matrix, training_length):
+    model = Sequential()
+
+    # Embedding layer
+    model.add(
+        Embedding(input_dim=num_words,
+                input_length = training_length,
+                output_dim=100,
+                weights=[embedding_matrix],
+                trainable=True,
+                mask_zero=True))
+
+    ## Masking layer for pre-trained embeddings
+    # model.add(Masking(mask_value=0.0))
+
+    # Recurrent layer
+    model.add(LSTM(64, return_sequences=True, 
+                dropout=0.1, recurrent_dropout=0.1))
+
+    model.add(Bidirectional(LSTM(64, return_sequences=False, 
+                dropout=0.1, recurrent_dropout=0.1)))
+
+    # Fully connected layer
+    model.add(Dense(64, activation='relu'))
+
+    # Dropout for regularization
+    model.add(Dropout(0.5))
 
     # Output layer
     model.add(Dense(num_words, activation='softmax'))
@@ -152,7 +246,6 @@ def build_model(embedding_matrix, training_length):
 
 def load_embeddings(glove_vectors, word_idx):
     # Load in embeddings
-    # glove_vectors = '/home/ubuntu/.keras/datasets/glove.6B.100d.txt'
     glove = np.loadtxt(glove_vectors, dtype='str', comments=None)
 
     # Extract the vectors and words
@@ -176,7 +269,6 @@ def load_embeddings(glove_vectors, word_idx):
     return embedding_matrix 
 
 
-
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 def train_model(model, X_train, X_valid, y_train, y_valid, filepath):
@@ -191,20 +283,20 @@ def train_model(model, X_train, X_valid, y_train, y_valid, filepath):
         validation_data=(X_valid, y_valid))
 
 
-
 if __name__ == '__main__':
     text = read_alice()
+    text = read_bbc_tech()
     # print(text[:500])
     # print(len(text))
     
     TRAINING_LENGTH = 50
-    word_idx, idx_word, num_words, word_counts, abstracts, sequences, features, labels = make_sequences([text], TRAINING_LENGTH, lower=True)
+    word_idx, idx_word, num_words, word_counts, abstracts, sequences, features, labels = make_sequences(text, TRAINING_LENGTH, lower=True)
     # print(word_idx)
     # print(idx_word)
     # print(num_words)
     # print(word_counts)
     # print(abstracts)
-    # print(sequences)
+    # print(len(sequences))
     # print(features)
     # print(labels)
 
@@ -215,10 +307,11 @@ if __name__ == '__main__':
                                                 train_fraction=0.7)
 
 
-    # embedding_matrix = load_embeddings('~/data/glove.6B.100d.txt', word_idx)
-    # # embedding_matrix = load_embeddings('~/data/glove.6B.300d.txt', word_idx)
-    # embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.100d.txt', word_idx)
-    embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.300d.txt', word_idx)
-    model = build_model(embedding_matrix, TRAINING_LENGTH)
+    embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.100d.txt', word_idx)
+    # # embedding_matrix = load_embeddings('/Users/jaipancholi/data/glove.6B.300d.txt', word_idx)
+    model = build_model_v1(embedding_matrix, TRAINING_LENGTH) # 6% 
+    # # model = build_model_v2(embedding_matrix, TRAINING_LENGTH) # 6%
+    # # model = build_model_v3(embedding_matrix, TRAINING_LENGTH) # 6%
+    # model = build_model_v4(embedding_matrix, TRAINING_LENGTH) # 4%??
 
     train_model(model, X_train, X_valid, y_train, y_valid, './model/100d_v3_alice.h5')

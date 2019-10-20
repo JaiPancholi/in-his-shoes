@@ -16,8 +16,23 @@ def read_alice():
     text = text.split(START_TEXT)[1]
     text = text.split(END_TEXT)[0]
 
-    return text
+    return [text]
+
+def read_bbc_tech():
+    path = os.path.dirname(os.path.abspath(__file__))
+    tech_path = os.path.join(path, 'bbc/tech')
+
+    filenames = os.listdir(tech_path)
+    contents = []
+    for filename in filenames:
+        with open(os.path.join(tech_path, filename), 'r') as fp:
+            contents.append(fp.read())
+
+    return contents
+
+
 
 
 if __name__ == '__main__':
-    read_alice()
+    # read_alice()
+    read_bbc_tech()
