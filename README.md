@@ -27,6 +27,11 @@ ipython kernel install --user --name=autocomplete_me
 jupyter notebooks
 ```
 
+
+daily mail data - https://cs.nyu.edu/~kcho/DMQA/
+
+doors of perception - https://maps.org/images/pdf/books/HuxleyA1954TheDoorsOfPerception.pdf
+
 ## Generate Samples
 ```
 python analysis/generate.py > lol.html

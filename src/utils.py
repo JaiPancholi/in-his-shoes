@@ -35,7 +35,7 @@ def format_sequence(s):
     return s
 
 def make_sequences(texts, training_length = 50,
-                   lower = True, filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n'):
+                   lower = True, filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', short=False):
     """Turn a set of texts into sequences of integers"""
     
     # Create the tokenizer object and train on texts
@@ -55,7 +55,11 @@ def make_sequences(texts, training_length = 50,
     
     # Limit to sequences with more than training length tokens
     seq_lengths = [len(x) for x in sequences]
-    over_idx = [i for i, l in enumerate(seq_lengths) if l > (training_length + 20)]
+    if not short:
+        over_idx = [i for i, l in enumerate(seq_lengths) if l > (training_length + 20)]
+    else:
+        over_idx = [i for i, l in enumerate(seq_lengths) if l > (training_length)]
+
     
     new_texts = []
     new_sequences = []
@@ -88,7 +92,8 @@ def make_sequences(texts, training_length = 50,
 def create_train_valid(features,
                        labels,
                        num_words,
-                       train_fraction=0.7):
+                       train_fraction=0.7
+                       ):
     """Create training and validation features and labels."""
     
     # Randomly shuffle features and labels
@@ -126,12 +131,12 @@ def create_train_valid(features,
     return X_train, X_valid, y_train, y_valid
 
 def get_data(texts, filters='!"%;[\\]^_`{|}~\t\n', training_len=50,
-             lower=False):
+             lower=False, short=False):
     """Retrieve formatted training and validation data from a file"""
     sentences = [format_sequence(sentence) for sentence in texts]
 
     word_idx, idx_word, num_words, word_counts, texts, sequences, features, labels = make_sequences(
-        sentences, training_len, lower, filters)
+        sentences, training_len, lower, filters, short=short)
 
     X_train, X_valid, y_train, y_valid = create_train_valid(features, labels, num_words)
     
@@ -179,12 +184,16 @@ def create_embedding_matrix(word_idx, num_words, glove_vector_filepath):
     return embedding_matrix
 
 
-def make_word_level_model(num_words,
-                          embedding_matrix,
-                          lstm_cells=64,
-                          trainable=False,
-                          lstm_layers=1,
-                          bi_direc=False):
+def make_word_level_model(
+    num_words,
+    embedding_matrix,
+    lstm_cells=64,
+    trainable=False,
+    lstm_layers=1,
+    bi_direc=False,
+    lstm_dropout=0.1,
+    lstm_recurrent_dropout=0.1,
+):
     """Make a word level recurrent neural network with option for pretrained embeddings
        and varying numbers of LSTM cell layers."""
 
@@ -215,8 +224,8 @@ def make_word_level_model(num_words,
                 LSTM(
                     lstm_cells,
                     return_sequences=True,
-                    dropout=0.1,
-                    recurrent_dropout=0.1))
+                    dropout=lstm_dropout,
+                    recurrent_dropout=lstm_recurrent_dropout))
 
     # Add final LSTM cell layer
     if bi_direc:
@@ -225,20 +234,20 @@ def make_word_level_model(num_words,
                 LSTM(
                     lstm_cells,
                     return_sequences=False,
-                    dropout=0.1,
-                    recurrent_dropout=0.1)))
+                    dropout=lstm_dropout,
+                    recurrent_dropout=lstm_recurrent_dropout)))
     else:
         model.add(
             LSTM(
                 lstm_cells,
                 return_sequences=False,
-                dropout=0.1,
-                recurrent_dropout=0.1))
+                dropout=lstm_dropout,
+                recurrent_dropout=lstm_recurrent_dropout))
     
     model.add(Dense(128, activation='relu'))
     
     # Dropout for regularization
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.5))
 
     # Output layer
     model.add(Dense(num_words, activation='softmax'))
@@ -256,98 +265,29 @@ MODELS_DIR = os.path.join(ROOT_DIR, 'models')
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 def train_model(training_dict, model_filename, model=None, use_pretrained_model=False, epochs=150):
-    if not model and not pretrained_model_filepath:
+    if not model and not use_pretrained_model:
         print('Provide one of either model or use_pretrained_model.')
 
-    model_filepath = os.path.join(MODELS_DIR, model_filename)
+    model_filepath = os.path.join(MODELS_DIR, model_filename + '.h5')
     if use_pretrained_model:
         model = load_model(model_filepath)
 
     callbacks = [
-        EarlyStopping(monitor='val_loss', patience=25),
-        ModelCheckpoint(f'{model_filepath}.h5', save_best_only=True, save_weights_only=False)
+        # EarlyStopping(monitor='val_loss', patience=5),
+        ModelCheckpoint(f'{model_filepath}', save_best_only=True, save_weights_only=False)
     ]
 
-    history = model.fit(
-        training_dict['X_train'], 
-        training_dict['y_train'], 
-        epochs=150, 
-        batch_size=2048, 
-        validation_data=(training_dict['X_valid'], training_dict['y_valid']), 
-        verbose=1,
-        callbacks=callbacks
-    )
+    try:
+        history = model.fit(
+            training_dict['X_train'], 
+            training_dict['y_train'], 
+            epochs=epochs, 
+            batch_size=2048, 
+            validation_data=(training_dict['X_valid'], training_dict['y_valid']), 
+            verbose=1,
+            callbacks=callbacks
+        )
 
-
-
-# def train_model_pretrained(training_dict, filename='train-embeddings-rnn.h5'):
-#     from keras.models import load_model
-#     # Load in model and demonstrate training
-#     root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#     model_path = os.path.join(root_path, 'models', filename)
-#     model = load_model(model_path)
-
-#     h = model.fit(training_dict['X_train'], training_dict['y_train'], epochs = 150, batch_size = 2048, 
-#             validation_data = (training_dict['X_valid'], training_dict['y_valid']), 
-#             verbose = 1)
-
-
-# from keras.models import Sequential, load_model
-# from keras.layers import LSTM, Dense, Dropout, Embedding, Masking, Bidirectional
-# from keras.optimizers import Adam
-
-# from keras.utils import plot_model
-
-# def train_model(word_idx, training_dict):
-#     model = Sequential()
-
-#     # Embedding layer
-#     model.add(
-#         Embedding(
-#             input_dim=len(word_idx) + 1,
-#             output_dim=100,
-#             weights=None,
-#             trainable=True))
-
-#     # Recurrent layer
-#     model.add(
-#         LSTM(
-#             64, return_sequences=False, dropout=0.1,
-#             recurrent_dropout=0.1))
-
-#     # Fully connected layer
-#     model.add(Dense(64, activation='relu'))
-
-#     # Dropout for regularization
-#     model.add(Dropout(0.5))
-
-#     # Output layer
-#     model.add(Dense(len(word_idx) + 1, activation='softmax'))
-
-#     # Compile the model
-#     model.compile(
-#         optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-#     # print(model.summary())
-
-#     h = model.fit(
-#         training_dict['X_train'], 
-#         training_dict['y_train'], 
-#         epochs=150, 
-#         batch_size=2048, 
-#         validation_data=(training_dict['X_valid'], training_dict['y_valid']), 
-#         verbose=1,
-#         callbacks=make_callbacks()
-#     )
-
-# from keras.callbacks import EarlyStopping, ModelCheckpoint
-# def make_callbacks(model_name='replicate_demo_test'):
-#     """Make list of callbacks for training"""
-#     root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#     model_dir = os.path.join(root_path, 'models')
-
-#     callbacks = [
-#         EarlyStopping(monitor='val_loss', patience=25),
-#         ModelCheckpoint( f'{model_dir}/{model_name}.h5', save_best_only=True, save_weights_only=False)
-#     ]
-#     return callbacks
+        return history
+    except:
+        return history
