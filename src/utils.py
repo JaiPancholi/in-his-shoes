@@ -177,7 +177,7 @@ def create_embedding_matrix(word_idx, num_words, glove_vector_filepath):
     print(f'There were {not_found} words without pre-trained embeddings.')
 
     # Normalize and convert nan to 0
-    embedding_matrix = embedding_matrix / np.linalg.norm(embedding_matrix, axis=1).reshape((-1, 1))
+    # embedding_matrix = embedding_matrix / np.linalg.norm(embedding_matrix, axis=1).reshape((-1, 1))
 
     embedding_matrix = np.nan_to_num(embedding_matrix)
 

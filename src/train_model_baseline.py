@@ -1,6 +1,6 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from data.reader import read_alice, read_bbc_tech
+from src.reader import *
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
@@ -93,8 +93,12 @@ def test_conditional_average_word(X_train, X_valid, y_train, y_valid, n=1):
     # n = 3 -> 28.8%
 
 if __name__ == '__main__':
-    text = read_alice()
-    text = read_bbc_tech()
+    # text = read_alice()
+    # text = read_bbc_tech()
+    # text = read_bbc_politics()
+    # text = read_bbc('business')
+    # text = read_bbc('entertainment')
+    text = read_bbc('sport')
 
     X_train, X_valid, y_train, y_valid = split_data(text)
     test_average_word(X_train, X_valid, y_train, y_valid)

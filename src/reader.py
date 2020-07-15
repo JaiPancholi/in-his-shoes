@@ -28,8 +28,11 @@ def read_bbc(section):
     filenames = os.listdir(tech_path)
     contents = []
     for filename in filenames:
-        with open(os.path.join(tech_path, filename), 'r') as fp:
-            contents.append(fp.read())
+        try:
+            with open(os.path.join(tech_path, filename), 'r') as fp:
+                contents.append(fp.read())
+        except:
+            print(filename)
 
     return contents
 
