@@ -1,3 +1,11 @@
+# TODO
+    Train and Run a single Transformer
+        What is transfermer head vs double head model?
+    Clean Previous Code + Deduplicate Code
+    Understand Transformers and apply to more ones
+
+
+
 # autocomplete_me
 https://machinelearningmastery.com/text-generation-lstm-recurrent-neural-networks-python-keras/
 https://towardsdatascience.com/recurrent-neural-networks-by-example-in-python-ffd204f99470
@@ -26,7 +34,6 @@ ipython kernel install --user --name=autocomplete_me
 # Start Notebook
 jupyter notebooks
 ```
-
 
 daily mail data - https://cs.nyu.edu/~kcho/DMQA/
 

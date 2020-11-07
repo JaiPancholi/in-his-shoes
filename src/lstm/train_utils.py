@@ -1,17 +1,16 @@
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import sys
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 import numpy as np
 def preprocess_text(text):
-	# Train Tokenizer and Apply
-	from tensorflow.keras.preprocessing.text import Tokenizer
-
-	# Train
+	"""
+	Train Tokenizer and Apply. (Converts tokens to ints)
+	:param text: ??
+	"""
 	tokenizer = Tokenizer()
 	tokenizer.fit_on_texts(text)
-
-	# Apply Tokenzier on Documents (convert words to numbers)
 	sequences = tokenizer.texts_to_sequences(text)
 
 	word_idx = tokenizer.word_index
@@ -20,24 +19,24 @@ def preprocess_text(text):
 
 	return sequences, num_words, word_idx, idx_word
 
-def pass_sliding_window(sequences, sequence_len=10):
-	# Create Sliding Window
-	features = []
-	labels = []
+# def pass_sliding_window(sequences, sequence_len=10):
+# 	# Create Sliding Window
+# 	features = []
+# 	labels = []
 
-	for sequence in sequences:
-	    for i in range(len(sequence) - sequence_len):
-	        window = sequence[i:sequence_len + i + 1]
+# 	for sequence in sequences:
+# 	    for i in range(len(sequence) - sequence_len):
+# 	        window = sequence[i:sequence_len + i + 1]
 	
-	        features.append(window[:-1])
-	        labels.append(window[-1])
+# 	        features.append(window[:-1])
+# 	        labels.append(window[-1])
 
-	print(f'There are {len(features)} sequences.')
+# 	print(f'There are {len(features)} sequences.')
 
-	features = np.array(features)
-	labels = np.array(labels)
+# 	features = np.array(features)
+# 	labels = np.array(labels)
 
-	return features, labels
+# 	return features, labels
 
 def one_hot_labels_and_improve_efficiency(labels):
 	# One Hot Encode Labels
@@ -55,18 +54,18 @@ def one_hot_labels_and_improve_efficiency(labels):
 	return labels
 
 
-def get_size_of_current_objects():
-	def sizeof_fmt(num, suffix='B'):
-		''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
-		for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-			if abs(num) < 1024.0:
-				return "%3.1f %s%s" % (num, unit, suffix)
-			num /= 1024.0
-		return "%.1f %s%s" % (num, 'Yi', suffix)
+# def get_size_of_current_objects():
+# 	def sizeof_fmt(num, suffix='B'):
+# 		''' by Fred Cirera,  https://stackoverflow.com/a/1094933/1870254, modified'''
+# 		for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+# 			if abs(num) < 1024.0:
+# 				return "%3.1f %s%s" % (num, unit, suffix)
+# 			num /= 1024.0
+# 		return "%.1f %s%s" % (num, 'Yi', suffix)
 
-	for name, size in sorted(((name, sys.getsizeof(value)) for name, value in locals().items()),
-							key= lambda x: -x[1])[:10]:
-		print("{:>30}: {:>8}".format(name, sizeof_fmt(size)))
+# 	for name, size in sorted(((name, sys.getsizeof(value)) for name, value in locals().items()),
+# 							key= lambda x: -x[1])[:10]:
+# 		print("{:>30}: {:>8}".format(name, sizeof_fmt(size)))
 
 def plot_history(history):
 	epochs = list(range(len(history.history['loss'])))

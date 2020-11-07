@@ -1,10 +1,10 @@
 import os 
 import sys
-import re
-import pandas as pd
-
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH = os.path.join(ROOT_PATH, 'data')
+sys.path.append(ROOT_PATH)
+from src.utils import DATA_PATH, MODEL_PATH
+import re
+
 
 def read_alice():
     path = os.path.join(DATA_PATH, 'alice.txt')
@@ -13,116 +13,121 @@ def read_alice():
     
     text = text.replace('\n', ' ')
     
-    START_TEXT = '*** START OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
-    END_TEXT = '*** END OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
+    # START_TEXT = '*** START OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
+    # END_TEXT = '*** END OF THIS PROJECT GUTENBERG EBOOK ALICE’S ADVENTURES IN WONDERLAND ***'
+
+    START_TEXT = 'THE MILLENNIUM FULCRUM EDITION 3.0'
+    END_TEXT = 'End of Project Gutenberg’s Alice’s Adventures in Wonderland, by Lewis Carroll'
 
     text = text.split(START_TEXT)[1]
     text = text.split(END_TEXT)[0]
-    text = text.split('.')
+    text = text.replace('  ', ' ')
+    text = text.split('. ')
+    text = text[:-1]
 
     return text
 
-def read_bbc(section):
-    tech_path = os.path.join(DATA_PATH, 'bbc', section)
+# def read_bbc(section):
+#     tech_path = os.path.join(DATA_PATH, 'bbc', section)
 
-    filenames = os.listdir(tech_path)
-    contents = []
-    for filename in filenames:
-        try:
-            with open(os.path.join(tech_path, filename), 'r') as fp:
-                contents.append(fp.read())
-        except:
-            print(filename)
+#     filenames = os.listdir(tech_path)
+#     contents = []
+#     for filename in filenames:
+#         try:
+#             with open(os.path.join(tech_path, filename), 'r') as fp:
+#                 contents.append(fp.read())
+#         except:
+#             print(filename)
 
-    return contents
+#     return contents
 
-def read_bbc_tech():
-    tech_path = os.path.join(DATA_PATH, 'bbc', 'tech')
+# def read_bbc_tech():
+#     tech_path = os.path.join(DATA_PATH, 'bbc', 'tech')
 
-    filenames = os.listdir(tech_path)
-    contents = []
-    for filename in filenames:
-        with open(os.path.join(tech_path, filename), 'r') as fp:
-            contents.append(fp.read())
+#     filenames = os.listdir(tech_path)
+#     contents = []
+#     for filename in filenames:
+#         with open(os.path.join(tech_path, filename), 'r') as fp:
+#             contents.append(fp.read())
 
-    return contents
+#     return contents
 
-def read_bbc_politics():
-    tech_path = os.path.join(DATA_PATH, 'bbc', 'politics')
+# def read_bbc_politics():
+#     tech_path = os.path.join(DATA_PATH, 'bbc', 'politics')
 
-    filenames = os.listdir(tech_path)
-    contents = []
-    for filename in filenames:
-        with open(os.path.join(tech_path, filename), 'r') as fp:
-            contents.append(fp.read())
+#     filenames = os.listdir(tech_path)
+#     contents = []
+#     for filename in filenames:
+#         with open(os.path.join(tech_path, filename), 'r') as fp:
+#             contents.append(fp.read())
 
-    return contents
+#     return contents
 
-def read_abstract():
-    abstract_path = os.path.join(DATA_PATH, 'neural_network_patent_query.csv')
+# def read_abstract():
+#     abstract_path = os.path.join(DATA_PATH, 'neural_network_patent_query.csv')
     
-    df = pd.read_csv(abstract_path, parse_dates=['patent_date'])
-    original_abstracts = list(df['patent_abstract'])
-    return original_abstracts
+#     df = pd.read_csv(abstract_path, parse_dates=['patent_date'])
+#     original_abstracts = list(df['patent_abstract'])
+#     return original_abstracts
 
-def read_shakespeare():
-    path_to_file = os.path.join(DATA_PATH, 'shakespeare.txt')
-    # Read, then decode for py2 compat.
-    text = open(path_to_file, 'rb').read().decode(encoding='utf-8')
-    # length of text is the number of characters in it
-    print ('Length of text: {} characters'.format(len(text)))
+# def read_shakespeare():
+#     path_to_file = os.path.join(DATA_PATH, 'shakespeare.txt')
+#     # Read, then decode for py2 compat.
+#     text = open(path_to_file, 'rb').read().decode(encoding='utf-8')
+#     # length of text is the number of characters in it
+#     print ('Length of text: {} characters'.format(len(text)))
 
-    return text.split('.')
+#     return text.split('.')
 
-import json
-import re
-def read_trump_tweet():
-    path_to_file = os.path.join(DATA_PATH, 'twitter_trump.json')
-    with open(path_to_file) as fp:
-        data = json.load(fp)
+# import json
+# import re
+# def read_trump_tweet():
+#     path_to_file = os.path.join(DATA_PATH, 'twitter_trump.json')
+#     with open(path_to_file) as fp:
+#         data = json.load(fp)
 
 
-    real_tweets = []
-    for tweet in data:
-        if 'is_retweet' not in tweet.keys():
-            real_tweets.append(tweet)
-        elif not tweet['is_retweet']:
-            real_tweets.append(tweet)
+#     real_tweets = []
+#     for tweet in data:
+#         if 'is_retweet' not in tweet.keys():
+#             real_tweets.append(tweet)
+#         elif not tweet['is_retweet']:
+#             real_tweets.append(tweet)
 
-    # Memory management
-    import gc
-    gc.enable()
+#     # Memory management
+#     import gc
+#     gc.enable()
 
-    del data
+#     del data
 
-    print(len(real_tweets))
+#     print(len(real_tweets))
 
-    tweet_text = []
-    for tweet in real_tweets:
-        tweet_text.append(re.sub('https{0,1}.+(\ |$)', '', tweet['text']))
+#     tweet_text = []
+#     for tweet in real_tweets:
+#         tweet_text.append(re.sub('https{0,1}.+(\ |$)', '', tweet['text']))
 
-    del real_tweets
+#     del real_tweets
     
-    gc.collect()
+#     gc.collect()
 
-    return tweet_text
+#     return tweet_text
 
-def read_aldous():
-    path_to_file = os.path.join(DATA_PATH, 'doors_of_perception.txt')
-    with open(path_to_file) as fp:
-        text = fp.read()
+# def read_aldous():
+#     path_to_file = os.path.join(DATA_PATH, 'doors_of_perception.txt')
+#     with open(path_to_file) as fp:
+#         text = fp.read()
 
-    sentences = text.split('.')
-    return sentences
+#     sentences = text.split('.')
+#     return sentences
 
 if __name__ == '__main__':
-    # text = read_alice()
-    # read_bbc_tech()
-    text = read_bbc('entertainment')
-    # text = read_abstract()
-    # text = read_shakespeare()
-    # text = read_trump_tweet()
-    # text = read_aldous()
+    text = read_alice()
+#     # read_bbc_tech()
+#     text = read_bbc('entertainment')
+#     # text = read_abstract()
+#     # text = read_shakespeare()
+#     # text = read_trump_tweet()
+#     # text = read_aldous()
     
-    print(text)
+    print(text[1])
     print(len(text))
