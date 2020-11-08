@@ -71,3 +71,8 @@ tokenized_dataset = datasets.map(
 )
 
 print(tokenized_dataset)
+
+https://github.com/huggingface/transformers/blob/master/examples/language-modeling/run_clm.py
+https://github.com/huggingface/transformers/issues/2008
+https://huggingface.co/docs/datasets/loading_datasets.html
+https://github.com/huggingface/transformers/issues/1407
