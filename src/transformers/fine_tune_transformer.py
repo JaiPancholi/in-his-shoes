@@ -20,36 +20,39 @@ from tensorflow.keras.utils import to_categorical
 from scipy.sparse import csr_matrix
 import numpy as np
 
-class LoadModel:
-	"""
-	Load pretrained models, deals with checkpointing etc.
-	At the minute, can be a function.
-	"""
-	def __init__(self):
-		pass
+# class LoadModel:
+# 	"""
+# 	Load pretrained models, deals with checkpointing etc.
+# 	At the minute, can be a function.
+# 	"""
+# 	def __init__(self):
+# 		pass
 
-	@classmethod
-	def from_filepath(cls, filepath):
-		# return transformer, model
-		pass
+# 	@classmethod
+# 	def from_filepath(cls, filepath):
+# 		# return transformer, model
+# 		pass
 
-	@classmethod
-	def from_huggingface(cls, model_name):
-		"""
-		pass
-		"""
-		MODELS = {
-			'gpt': (OpenAIGPTTokenizer, TFOpenAIGPTDoubleHeadsModel),
-			# 'gpt2': (GPT2TokenizerFast, TFGPT2LMHeadModel),
-			'gpt2': (GPT2TokenizerFast, GPT2LMHeadModel),
-			# 'gpt2': (GPT2TokenizerFast, TFGPT2DoubleHeadsModel),
-			't5': (T5Tokenizer, TFT5Model),
-		}
-		if model_name not in MODELS.keys():
-			raise ValueError()
+# 	@classmethod
+# 	def from_huggingface(cls, model_name, framework='tf'):
+# 		"""
+# 		pass
+# 		"""
+# 		MODELS = {
+# 			'tf': {
+# 				'gpt': (OpenAIGPTTokenizer, TFOpenAIGPTDoubleHeadsModel),
+# 				'gpt2': (GPT2TokenizerFast, TFGPT2LMHeadModel),
+# 				't5': (T5Tokenizer, TFT5Model),
+# 			},
+# 			'pt': {
+# 				'gpt2': (GPT2TokenizerFast, GPT2LMHeadModel),
+# 			}
+# 		}
+# 		if model_name not in MODELS[framework].keys():
+# 			raise ValueError()
 
-		tokenizer, model = MODELS[model_name]
-		return tokenizer.from_pretrained(model_name), model.from_pretrained(model_name, return_dict=True)
+# 		tokenizer, model = MODELS[framework][model_name]
+# 		return tokenizer.from_pretrained(model_name), model.from_pretrained(model_name, return_dict=True)
 
 # def load_model(model=None, use_pretrained_model=None, model_filepath=None):
 # 	if not model and not use_pretrained_model:

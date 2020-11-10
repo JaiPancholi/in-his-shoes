@@ -1,26 +1,206 @@
 import os 
 import sys
 import numpy as np
-
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH = os.path.join(ROOT_PATH, 'data')
 MODEL_PATH = os.path.join(ROOT_PATH, 'models')
+
+class DataReader:
+	"""
+	This class loads text that can be trained on. All functions
+	return a list of sequences.
+	"""
+	def __init__(self):
+		pass
+	
+	@classmethod
+	def _find_data_directory(cls):
+		"""
+		Finds a directory called 'data'. Necessary for when training locally vs.
+		on Google Colab
+		"""
+		current_directory = os.path.dirname(os.path.abspath(__file__))
+		print(current_directory)
+		if 'data' in os.listdir(current_directory):
+			return os.path.join(current_directory, 'data')
+		else:
+			return os.path.join(ROOT_PATH, 'data')
+
+	@classmethod
+	def read_alice(cls):
+		data_directory = cls._find_data_directory()
+		
+		filepath = os.path.join(data_directory, 'alice.txt')
+		print('Loading file from {}'.format(filepath))
+		with open(filepath, 'r') as fp:
+			text = fp.read()
+		
+		text = text.replace('\n', ' ') # fix new lines
+
+		# trim text
+		START_TEXT = 'THE MILLENNIUM FULCRUM EDITION 3.0'
+		END_TEXT = 'End of Project Gutenberg’s Alice’s Adventures in Wonderland, by Lewis Carroll'
+		text = text.split(START_TEXT)[1]
+		text = text.split(END_TEXT)[0]
+
+		text = text.replace('  ', ' ') # fix spaces
+		text = text.split('. ') # split into sentences
+		text = [sentence+'.' for sentence in text] # add in full stops
+		text = text[:-1] # ignore last sentece
+
+		return text
+
+	@classmethod
+	def _read_bbc(cls, section):
+		data_directory = cls._find_data_directory()
+		tech_path = os.path.join(data_directory, 'bbc', section)
+
+		filenames = os.listdir(tech_path)
+		contents = []
+		for filename in filenames:
+			try:
+				with open(os.path.join(tech_path, filename), 'r') as fp:
+					text = fp.read()
+					text = text.replace('\n', '')
+					contents.append(text)
+			except:
+				print(filename)
+
+		return contents
+
+	@classmethod
+	def read_bbc_tech(cls):
+		return cls._read_bbc('tech')
+
+	@classmethod
+	def read_bbc_politics(cls):
+		return cls._read_bbc('politics')
+
+	@classmethod
+	def read_bbc_business(cls):
+		return cls._read_bbc('business')
+
+	@classmethod
+	def read_trumps_tweets(cls):
+		# path_to_file = os.path.join(DATA_PATH, 'twitter_trump.json')
+		# with open(path_to_file) as fp:
+		# 	data = json.load(fp)
+
+
+		# real_tweets = []
+		# for tweet in data:
+		# 	if 'is_retweet' not in tweet.keys():
+		# 		real_tweets.append(tweet)
+		# 	elif not tweet['is_retweet']:
+		# 		real_tweets.append(tweet)
+
+
+		# tweet_text = []
+		# for tweet in real_tweets:
+		# 	tweet_text.append(re.sub('https{0,1}.+(\ |$)', '', tweet['text']))
+		# return tweet_text
+		raise NotImplementedError()
+
+	@classmethod
+	def read_doors_of_perception(cls):
+		# path_to_file = os.path.join(DATA_PATH, 'doors_of_perception.txt')
+		# with open(path_to_file) as fp:
+		# 	text = fp.read()
+
+		# sentences = text.split('.')
+		# return sentences
+		raise NotImplementedError()
+
+	@classmethod
+	def read_abstracts(cls):
+		# abstract_path = os.path.join(DATA_PATH, 'neural_network_patent_query.csv')
+		
+		# df = pd.read_csv(abstract_path, parse_dates=['patent_date'])
+		# original_abstracts = list(df['patent_abstract'])
+		# return original_abstracts
+		raise NotImplementedError()
+
+	@classmethod
+	def read_shakespeare(cls):
+		# path_to_file = os.path.join(DATA_PATH, 'shakespeare.txt')
+		# # Read, then decode for py2 compat.
+		# text = open(path_to_file, 'rb').read().decode(encoding='utf-8')
+		# # length of text is the number of characters in it
+		# print ('Length of text: {} characters'.format(len(text)))
+
+		# return text.split('.')
+		raise NotImplementedError()
+
+from transformers import GPT2LMHeadModel, TFGPT2LMHeadModel, GPT2TokenizerFast, \
+						OpenAIGPTLMHeadModel, TFOpenAIGPTLMHeadModel, OpenAIGPTTokenizer, \
+						T5Model, TFT5Model, T5Tokenizer
+						
+class TransformerLoader:
+	"""
+	Load pretrained models, deals with checkpointing etc.
+	At the minute, can be a function.
+	"""
+	def __init__(self):
+		pass
+
+	@classmethod
+	def from_filepath(cls, filepath):
+		# return transformer, model
+		pass
+
+	@classmethod
+	def from_huggingface(cls, model_name, framework='tf'):
+		"""
+		pass
+		"""
+		TOKENIZERS = {
+			'gpt': OpenAIGPTTokenizer,
+			'gpt2': GPT2TokenizerFast,
+			't5': T5Tokenizer
+		}
+		MODELS = {
+			'tf': {
+				'gpt': TFOpenAIGPTLMHeadModel,
+				'gpt2': TFGPT2LMHeadModel,
+				't5': TFT5Model,
+			},
+			'pt': {
+				'gpt': OpenAIGPTLMHeadModel,
+				'gpt2': GPT2LMHeadModel,
+				'tf': T5Model,
+			}
+		}
+		if model_name not in MODELS[framework].keys():
+			raise NotImplementedError('Model not imported')
+
+		# tokenizer, model = MODELS[framework][model_name]
+	
+		# load tokenizer
+		tokenizer_class = TOKENIZERS[model_name]
+		tokenizer = tokenizer_class.from_pretrained(model_name)
+		tokenizer.pad_token = tokenizer.eos_token
+
+		# load model
+		model_class = MODELS[framework][model_name]
+		model = model_class.from_pretrained(model_name, return_dict=True)
+
+		return tokenizer, model
+
 
 def pass_sliding_window(sequences, sequence_len=10):
 	"""
-    Passes a sliding window across a list of sentences and does not performs padding.
+	Passes a sliding window across a list of sentences and does not performs padding.
 
-    :param sequences: list of lists containing individual words
-    """
+	:param sequences: list of lists containing individual words
+	"""
 	features = []
 	labels = []
 
 	for sequence in sequences:
-	    for i in range(len(sequence) - sequence_len):
-	        window = sequence[i:sequence_len + i + 1]
+		for i in range(len(sequence) - sequence_len):
+			window = sequence[i:sequence_len + i + 1]
 	
-	        features.append(window[:-1])
-	        labels.append(window[-1])
+			features.append(window[:-1])
+			labels.append(window[-1])
 
 	print(f'There are {len(features)} sequences.')
 
@@ -28,3 +208,19 @@ def pass_sliding_window(sequences, sequence_len=10):
 	labels = np.array(labels)
 
 	return features, labels
+
+if __name__ == '__main__':
+	# text = read_alice()
+
+	# text = read_bbc('entertainment')
+	# text = read_abstract()
+	# text = read_shakespeare()
+	# text = read_trump_tweet()
+	# text = read_aldous()
+	
+	# text = DataReader.read_alice()
+	# text = DataReader.read_bbc_business()
+	# print(text[1])
+	# print(len(text))
+
+	TransformerLoader()
