@@ -106,3 +106,4 @@ venv.bak/
 glove.6B
 /data/*
 /model/*
+.vscode

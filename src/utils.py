@@ -60,7 +60,7 @@ class DataReader:
 			try:
 				with open(os.path.join(tech_path, filename), 'r') as fp:
 					text = fp.read()
-					text = text.replace('\n', '')
+					text = text.replace('\n', ' ')
 					contents.append(text)
 			except:
 				print(filename)
@@ -132,7 +132,7 @@ class DataReader:
 
 from transformers import GPT2LMHeadModel, TFGPT2LMHeadModel, GPT2TokenizerFast, \
 						OpenAIGPTLMHeadModel, TFOpenAIGPTLMHeadModel, OpenAIGPTTokenizer, \
-						T5Model, TFT5Model, T5Tokenizer
+						T5Model, TFT5Model, T5Tokenizer, GPT2Config, TFGPT2Model
 						
 class TransformerLoader:
 	"""
@@ -160,7 +160,8 @@ class TransformerLoader:
 		MODELS = {
 			'tf': {
 				'gpt': TFOpenAIGPTLMHeadModel,
-				'gpt2': TFGPT2LMHeadModel,
+				# 'gpt2': TFGPT2LMHeadModel,
+				'gpt2': TFGPT2Model,
 				't5': TFT5Model,
 			},
 			'pt': {
@@ -176,15 +177,25 @@ class TransformerLoader:
 	
 		# load tokenizer
 		tokenizer_class = TOKENIZERS[model_name]
-		tokenizer = tokenizer_class.from_pretrained(model_name)
+		tokenizer = tokenizer_class.from_pretrained(model_name, add_prefix_space=True)
 		tokenizer.pad_token = tokenizer.eos_token
 
 		# load model
 		model_class = MODELS[framework][model_name]
 		model = model_class.from_pretrained(model_name, return_dict=True)
+		
+		# config = GPT2Config(
+		# 	vocab_size=tokenizer.vocab_size,
+		# 	bos_token_id=tokenizer.bos_token_id,
+		# 	eos_token_id=tokenizer.eos_token_id,
+		# 	# hidden_states=False,
+		# )		
+		# model = model_class(config, output_hidden_states=False)
 
 		return tokenizer, model
 
+
+# def train_test_split_from_chu
 
 def pass_sliding_window(sequences, sequence_len=10):
 	"""
@@ -210,17 +221,4 @@ def pass_sliding_window(sequences, sequence_len=10):
 	return features, labels
 
 if __name__ == '__main__':
-	# text = read_alice()
-
-	# text = read_bbc('entertainment')
-	# text = read_abstract()
-	# text = read_shakespeare()
-	# text = read_trump_tweet()
-	# text = read_aldous()
-	
-	# text = DataReader.read_alice()
-	# text = DataReader.read_bbc_business()
-	# print(text[1])
-	# print(len(text))
-
 	TransformerLoader()
