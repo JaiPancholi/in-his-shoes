@@ -160,8 +160,8 @@ class TransformerLoader:
 		MODELS = {
 			'tf': {
 				'gpt': TFOpenAIGPTLMHeadModel,
-				# 'gpt2': TFGPT2LMHeadModel,
-				'gpt2': TFGPT2Model,
+				'gpt2': TFGPT2LMHeadModel,
+				# 'gpt2': TFGPT2Model,
 				't5': TFT5Model,
 			},
 			'pt': {
@@ -182,20 +182,11 @@ class TransformerLoader:
 
 		# load model
 		model_class = MODELS[framework][model_name]
-		model = model_class.from_pretrained(model_name, return_dict=True)
+		# model = model_class.from_pretrained(model_name, return_dict=True)
+		model = model_class.from_pretrained(model_name)
 		
-		# config = GPT2Config(
-		# 	vocab_size=tokenizer.vocab_size,
-		# 	bos_token_id=tokenizer.bos_token_id,
-		# 	eos_token_id=tokenizer.eos_token_id,
-		# 	# hidden_states=False,
-		# )		
-		# model = model_class(config, output_hidden_states=False)
-
 		return tokenizer, model
 
-
-# def train_test_split_from_chu
 
 def pass_sliding_window(sequences, sequence_len=10):
 	"""
@@ -219,6 +210,27 @@ def pass_sliding_window(sequences, sequence_len=10):
 	labels = np.array(labels)
 
 	return features, labels
+
+def generate_sequence(text, tokenizer, model):
+    # encoding the input text
+    input_ids = tokenizer.encode(text, return_tensors='tf')
+
+    # output
+    output = model.generate(
+    	input_ids,
+    	max_length = 50, # maximum number of tokens/sub-words to output
+    	temperature = 0.7, # how innovative the result will be (higher temperature is equivalent to more innovative)
+    #   top_k=,
+    #   top_p=,
+    #   repetition_penalty=,
+    	do_sample=True,
+    	no_repeat_ngram_size=2, # do not allow repetations in the generated text above the number of n grams
+      	num_return_sequences=5 # number of outputs to generate
+    )
+    
+    # decode the output
+    text = tokenizer.decode(output[0]) # print out the output generated from the sample input text
+    return text
 
 if __name__ == '__main__':
 	TransformerLoader()
