@@ -139,14 +139,6 @@ class TransformerLoader:
 	Load pretrained models, deals with checkpointing etc.
 	At the minute, can be a function.
 	"""
-	def __init__(self):
-		pass
-
-	@classmethod
-	def from_filepath(cls, filepath):
-		# return transformer, model
-		pass
-
 	@classmethod
 	def from_huggingface(cls, model_name, framework='tf'):
 		"""
@@ -231,6 +223,52 @@ def generate_sequence(text, tokenizer, model):
     # decode the output
     text = tokenizer.decode(output[0]) # print out the output generated from the sample input text
     return text
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+def plot_tensorflow_training_history(history, num_epochs):
+	"""
+	"""
+	fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+	epoch_range = list(range(1, num_epochs + 1))
+
+	graph_configs = [
+		{'name': 'training_loss', 'key': 'loss', 'style': {'color': 'blue', 'dash': 'solid'}, 'secondary_y': False},
+		{'name': 'training_acc', 'key': 'output_1_accuracy', 'style': {'color': 'red', 'dash': 'solid'}, 'secondary_y': True},
+		{'name': 'val_loss', 'key': 'val_loss', 'style': {'color': 'blue', 'dash': 'dash'}, 'secondary_y': False},
+		{'name': 'val_acc', 'key': 'val_output_1_accuracy', 'style': {'color': 'red', 'dash': 'dash'}, 'secondary_y': True},
+	]
+
+	for graph_config in graph_configs:
+	fig.add_trace(go.Scatter(
+		x=epoch_range, y=history.history[graph_config['key']],
+		mode='lines',
+		name=graph_config['name'],
+		line={
+			'color': graph_config['style']['color'],
+			'dash': graph_config['style']['dash'],
+		},
+	),
+		secondary_y=graph_config['secondary_y']
+	)
+
+	fig.update_layout(
+		title='Model Training Metrics',
+		xaxis={
+			'title': 'Epochs'
+		},
+		yaxis=dict(
+			title="Loss",
+			range=[0, 5]
+		),
+		yaxis2=dict(
+			title="Accuracy",
+			range=[0,1]
+		),
+	)
+
+	fig.show()
 
 if __name__ == '__main__':
 	TransformerLoader()
