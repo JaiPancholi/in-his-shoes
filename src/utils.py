@@ -226,12 +226,10 @@ def generate_sequence(text, tokenizer, model):
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-def plot_tensorflow_training_history(history, num_epochs):
+def plot_tensorflow_training_history(history, save_filename=None, **graph_config_keys):
 	"""
 	"""
 	fig = make_subplots(specs=[[{"secondary_y": True}]])
-
-	epoch_range = list(range(1, num_epochs + 1))
 
 	graph_configs = [
 		{'name': 'training_loss', 'key': 'loss', 'style': {'color': 'blue', 'dash': 'solid'}, 'secondary_y': False},
@@ -240,35 +238,46 @@ def plot_tensorflow_training_history(history, num_epochs):
 		{'name': 'val_acc', 'key': 'val_output_1_accuracy', 'style': {'color': 'red', 'dash': 'dash'}, 'secondary_y': True},
 	]
 
-	for graph_config in graph_configs:
-	fig.add_trace(go.Scatter(
-		x=epoch_range, y=history.history[graph_config['key']],
-		mode='lines',
-		name=graph_config['name'],
-		line={
-			'color': graph_config['style']['color'],
-			'dash': graph_config['style']['dash'],
-		},
-	),
-		secondary_y=graph_config['secondary_y']
-	)
+	for name, key in graph_config_keys.items():
+		for graph_config in graph_configs:
+			if graph_config['name'] == name:
+				graph_config['key'] = key
 
-	fig.update_layout(
-		title='Model Training Metrics',
-		xaxis={
-			'title': 'Epochs'
-		},
-		yaxis=dict(
-			title="Loss",
-			range=[0, 5]
+	num_epochs = len(history.history[graph_configs[0]['key']])
+	epoch_range = list(range(1, num_epochs + 1))
+
+	for graph_config in graph_configs:
+		fig.add_trace(go.Scatter(
+			x=epoch_range, y=history.history[graph_config['key']],
+			mode='lines',
+			name=graph_config['name'],
+			line={
+				'color': graph_config['style']['color'],
+				'dash': graph_config['style']['dash'],
+			},
 		),
-		yaxis2=dict(
-			title="Accuracy",
-			range=[0,1]
-		),
-	)
+			secondary_y=graph_config['secondary_y']
+		)
+
+		fig.update_layout(
+			title='Model Training Metrics',
+			xaxis={
+				'title': 'Epochs'
+			},
+			yaxis=dict(
+				title="Loss",
+				range=[0, 5]
+			),
+			yaxis2=dict(
+				title="Accuracy",
+				range=[0,1]
+			),
+		)
 
 	fig.show()
+
+	if save_filename:
+		fig.write_html(save_filename)
 
 if __name__ == '__main__':
 	TransformerLoader()

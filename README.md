@@ -27,7 +27,7 @@ pip3 install -r requirements.txt
 
 # Install Jupyter kernel in environment
 pip3 install ipykernel
-ipython kernel install --user --name=autocomplete_me
+ipython kernel install --user --name=in-his-shoes
 
 # Start Notebook
 jupyter notebooks
